@@ -1,123 +1,127 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserService from "../UserService/UserService";
+import { Input } from '../ui/Auth-ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Auth-ui/card';
+import { Label } from '../ui/Auth-ui/label';
+import { RadioGroup, RadioGroupItem } from '../ui/Auth-ui/radio-group';
+import { Button } from '../ui/Auth-ui/button';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    role: '', // role will be set based on the checkbox
+    role: 'USER',
     city: ''
   });
+  const [error, setError] = useState('');
+  const nav = useNavigate();
 
-  // Handle input change for text fields
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle role change (checkbox)
-  const handleRoleChange = (e) => {
-    const { value } = e.target;
+  const handleRoleChange = (value) => {
     setFormData({ ...formData, role: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('No token found! Please log in first.');
-        return;
-      }
-      
-      // Call the UserService to register the user with the selected role
-      const response = await UserService.register(formData, token);
-
-      // Clear the form fields after successful registration
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        role: '', // Clear the role
-        city: ''
-      });
-
-      alert('User registered successfully');
+      const response = await UserService.register(formData);
+      console.log('User registered successfully', response);
+      nav('/Login');
     } catch (error) {
       console.error('Error registering user:', error);
-      alert('An error occurred while registering user');
+      setError('An error occurred while registering user');
     }
   };
 
   return (
-    <div className="w-full h-screen bg-green-600 flex items-center justify-center">
-      <form onSubmit={handleSubmit} className='border-[2px] border-purple-300 w-2/5 h-4/5 flex items-center justify-center flex-col text-white gap-5'>
-        <h1 className='py-3 text-2xl'>Hello 👋, Register to get Started</h1>
-        
-        <label className='text-xl'>Username</label>
-        <input 
-          type="text" 
-          placeholder='Enter your Username' 
-          className='w-4/5 h-12' 
-          name="name" 
-          value={formData.name}
-          onChange={handleInputChange} 
-        />
-        
-        <label className='text-xl'>Email</label>
-        <input 
-          type="email" 
-          placeholder='Enter your email' 
-          className='w-4/5 h-12' 
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange} 
-        />
+    <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-white/10 backdrop-blur-md border-none shadow-xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center text-white">Hello 👋, Register to get Started</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-white">Username</Label>
+              <Input
+                id="name"
+                type="text" 
+                placeholder="Enter your Username" 
+                className="bg-white/20 text-white placeholder-white/50 border-white/30 focus:border-white"
+                name="name" 
+                value={formData.name}
+                onChange={handleInputChange} 
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white">Email</Label>
+              <Input 
+                id="email"
+                type="email" 
+                placeholder="Enter your email" 
+                className="bg-white/20 text-white placeholder-white/50 border-white/30 focus:border-white"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange} 
+                required
+              />
+            </div>
 
-        <label className='text-xl'>Password</label>
-        <input 
-          type="password" 
-          placeholder='Enter your password' 
-          className='w-4/5 h-12' 
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange} 
-        />
-        
-        {/* Role Selection: Normal User or Store Owner */}
-        <div className="flex items-center gap-5">
-          <div>
-            <input 
-              type="radio" 
-              id="user" 
-              name="role" 
-              value="USER" 
-              onChange={handleRoleChange} 
-              checked={formData.role === "USER"}
-            />
-            <label htmlFor="user" className="text-xl">Normal User</label>
-          </div>
-          <div>
-            <input 
-              type="radio" 
-              id="storeOwner" 
-              name="role" 
-              value="ADMIN" 
-              onChange={handleRoleChange} 
-              checked={formData.role === "ADMIN"}
-            />
-            <label htmlFor="storeOwner" className="text-xl">Store Owner</label>
-          </div>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-white">Password</Label>
+              <Input
+                id="password"
+                type="password" 
+                placeholder="Enter your password" 
+                className="bg-white/20 text-white placeholder-white/50 border-white/30 focus:border-white"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange} 
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-white">Role</Label>
+              <RadioGroup 
+                defaultValue="USER" 
+                onValueChange={handleRoleChange}
+                className="flex flex-col sm:flex-row sm:gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="USER" id="user" />
+                  <Label htmlFor="user" className="text-white">Normal User</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="ADMIN" id="storeOwner" />
+                  <Label htmlFor="storeOwner" className="text-white">Store Owner</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
-        {/* Register Button */}
-        <button type="submit" className="w-4/5 h-11 border-2px bg-pink-800">Register</button>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        {/* Login Redirect Button */}
-        <button className="mt-5">Already Have an Account? <Link to="/Login">Login</Link></button>
-      </form>
+            <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+              Register
+            </Button>
+
+            <div className="text-center">
+              <Button variant="link" asChild className="text-white hover:text-purple-200">
+                <Link to="/Login">Already Have an Account? Login</Link>
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
